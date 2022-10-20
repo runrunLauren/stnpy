@@ -1,13 +1,15 @@
 from statistics import mean
-
 import numpy as np
 import pandas as pd
 import igraph as ig
 import math
 
-def get_data(filename, delimiter):
+def get_data(filename, delimiter, run_number=None):
     try:
-        return pd.read_csv(filename, delimiter=delimiter)
+        df = pd.read_csv(filename, delimiter=delimiter)
+        if run_number is not None:
+            return df[df["Run"] == run_number]
+        return df
     except:
         raise Exception(f"Input file '{filename}' could not be read with delimiter '{delimiter}'.")
 
@@ -22,8 +24,8 @@ def map_positions(positions):
             next_id += 1
     return  position_ids
 
-def stn_create(filename, delimiter=",", best_fit=None):
-    df = get_data(filename, delimiter)
+def stn_create(filename, delimiter=",", best_fit=None, run_number=None):
+    df = get_data(filename, delimiter, run_number=run_number)
     nodes_and_values = pd.DataFrame(np.concatenate([df[['Solution1', 'Fitness1']].values, df[['Solution2', 'Fitness2']].values]),
                                  columns=['position', 'fitness'])
 
@@ -79,7 +81,7 @@ def generate_metrics(stn_graph, nruns=1.0):
         npaths = 0
     return nodes, edges, nbest, nend, components, best_strength, plength, npaths
 
-def run_file(filename):
-    stn = stn_create(filename)
+def run_file(filename, delimiter=",", best_fit=None ,run_number=None):
+    stn = stn_create(filename, delimiter=delimiter, best_fit=best_fit, run_number=run_number)
     return generate_metrics(stn)
 
